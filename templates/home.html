@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+{%block title %} Home {% endblock %}
+{%block body %} 
+    <!-- This lets you create a new post -->
+    <div class="card my-3">
+        <div class="card-body">
+            <textarea id="postContent" class="form-control" placeholder="What's on your mind?" rows="3"></textarea>
+            <button class="btn btn-primary mt-2" onclick="submitPost()">Post</button>
+        </div>
+    </div>
+
+    <!-- this lets you create a new post -->
+    <div id="feed">
+        {% for post in posts %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <strong>{{ post.name }}</strong>
+                <small class="text-muted">{{ post.timestamp[:16].replace("T", " ") }}</small>
+            </div>
+            {{ post.content }}<br>
+
+
+            <button class="btn btn-sm btn-outline-primary mt-2" onclick="likePost({{ post.id }})">
+                ❤️ Like ({{ post.likes }})
+            </button>
+
+            <div class="mt-3">
+                <input type="text" class="form-control mb-1" placeholder="Write a comment..." id="commentInput{{ post.id }}">
+                <button class="btn btn-sm btn-secondary" onclick="submitComment({{ post.id }})">Comment</button>
+            </div>
+
+            <div class="mt-2">
+                {% for c in post.comments[:2] %}
+                    <div class="border p-1 mb-1 rounded bg-light">
+                        <strong>{{ c.name }}</strong>: {{ c.content }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="comments-{{ post.id }}"></div>
+
+    {% if post.comments|length > 2 %}
+        <button class="btn btn-link p-0" onclick="loadMoreComments({{ post.id }})">
+            Show more comments
+        </button>
+    {% endif %}
+
+{% endfor %}
+
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        const user = tg.initDataUnsafe.user;
+
+        function submitPost() {
+        const content = document.getElementById("postContent").value;
+
+        fetch("/post", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                telegram_id:user.id,
+                name:user.first_name,
+                content: content
+            })
+        })
+        .then(res => {
+            if (res.ok) location.reload();
+        });
+    }
+        function likePost(postId) {
+        fetch("/like", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                telegram_id: 1, // Replace with user.id
+                post_id: postId
+            })
+        }).then(res => {
+            if (res.ok) location.reload();
+        });
+    }
+
+    function submitComment(postId) {
+        const content = document.getElementById("commentInput" + postId).value;
+
+        fetch("/comment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                telegram_id: 1, // Replace with user.id
+                name: "test",   // Replace with user.first_name
+                post_id: postId,
+                content: content
+            })
+        }).then(res => {
+            if (res.ok) location.reload();
+        });
+    }
+    function loadMoreComments(postId) {
+    fetch(`/comments/${postId}`)
+        .then(response => response.json())
+        .then(comments => {
+            const container = document.getElementById(`comments-${postId}`);
+            container.innerHTML = ""; // Clear old ones
+
+            comments.forEach(comment => {
+                const div = document.createElement("div");
+                div.classList.add("mb-1");
+                div.innerHTML = `<strong>${comment.name}</strong>: ${comment.content}<br>
+                                 <small>${comment.timestamp} • 👍 ${comment.likes}</small>`;
+                container.appendChild(div);
+            });
+
+            // Hide the button after loading
+            event.target.style.display = "none";
+        });
+}
+    </script>
+{% endblock %}
