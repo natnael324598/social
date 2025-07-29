@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from cs50 import SQL
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 app = Flask(__name__)
@@ -72,7 +72,7 @@ def comment():
     db.execute("""
         INSERT INTO comments (post_id, telegram_id, name, content, timestamp)
         VALUES (?, ?, ?, ?, ?)
-    """, data["post_id"], data["telegram_id"], data["name"], data["content"], datetime.utcnow().isoformat())
+    """, data["post_id"], data["telegram_id"], data["name"], data["content"], datetime.now(timezone.utc).isoformat().isoformat())
     return jsonify(success=True)
 
 @app.route("/comments/<int:post_id>")
