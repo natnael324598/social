@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from cs50 import SQL
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import os
 
 app = Flask(__name__)
@@ -66,13 +66,18 @@ def like():
     return jsonify(success=True)
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
+
 @app.route("/comment", methods=["POST"])
 def comment():
     data = request.get_json()
     db.execute("""
         INSERT INTO comments (post_id, telegram_id, name, content, timestamp)
         VALUES (?, ?, ?, ?, ?)
-    """, data["post_id"], data["telegram_id"], data["name"], data["content"], datetime.now(timezone.utc).isoformat().isoformat())
+    """, data["post_id"], data["telegram_id"], data["name"], data["content"], datetime.now(UTC).isoformat())
     return jsonify(success=True)
 
 @app.route("/comments/<int:post_id>")
@@ -94,7 +99,7 @@ def post():
         data["telegram_id"],
         data["name"],
         data["content"],
-        datetime.utcnow().isoformat()
+        datetime.now(UTC).isoformat()
     )
     return jsonify(success=True)
 

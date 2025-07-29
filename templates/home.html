@@ -79,7 +79,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                telegram_id: 1, // Replace with user.id
+                telegram_id: user.id,
                 post_id: postId
             })
         }).then(res => {
@@ -94,8 +94,8 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                telegram_id: 1, // Replace with user.id
-                name: "test",   // Replace with user.first_name
+                telegram_id:user.id,
+                name: user.first_name,
                 post_id: postId,
                 content: content
             })
